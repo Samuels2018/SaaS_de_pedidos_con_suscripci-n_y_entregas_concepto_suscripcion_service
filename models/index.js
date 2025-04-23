@@ -37,6 +37,11 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
+const plansModel = require('./plansModel')(sequelize, Sequelize.DataTypes);
+const subscriptionsModel = require('./subscriptionsModel')(sequelize, Sequelize.DataTypes);
+db[plansModel.name] = plansModel;
+db[subscriptionsModel.name] = subscriptionsModel;
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
