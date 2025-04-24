@@ -20,7 +20,10 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "chai": "^5.2.0",
-    "mocha": "^11.1.0"
+    "mocha": "^11.1.0",
+    "mock-req-res": "^1.2.1",
+    "sinon": "^20.0.0"
   }
 }

@@ -1,7 +1,7 @@
 'use strict'
 const {Subscriptions}  = require('.../models')
 
-const suscribePlanService = async () => {
+const suscribePlanService = async (userId, planId, status, startDate, endDate, nextBillingDate) => {
   const defaultData = {
     userId: userId || 1,
     planId: planId || 1,
@@ -36,8 +36,25 @@ const existingSubscription = async (userId) => {
   return suscription
 }
 
+const updatePlanService = async (userId, planId, status, startDate, endDate, nextBillingDate) => {
+  const updatedSubscription = await Subscriptions.update({
+    planId: planId,
+    status: status,
+    startDate: startDate,
+    endDate: endDate,
+    nextBillingDate: nextBillingDate
+  }, {
+    where: {
+      userId: userId
+    }
+  })
+
+  return updatedSubscription
+}
+
 
 module.exports = {
   suscribePlanService,
-  existingSubscription
+  existingSubscription,
+  updatePlanService
 }
