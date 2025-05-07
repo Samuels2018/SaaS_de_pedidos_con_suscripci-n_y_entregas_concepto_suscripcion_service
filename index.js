@@ -1,5 +1,7 @@
 const express = require('express')
 const cors = require('cors')
+const suscriptionsRoute = require('./src/routes/suscriptionsRoute')
+const plansRouter = require('./src/routes/plansRoute')
 
 const app = express()
 
@@ -14,7 +16,8 @@ app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 
-app.use("/", indexRouter)
+app.use("/api", suscriptionsRoute)
+app.use("/api", plansRouter)
 
 app.listen(3000, (err) => {
   if (err) {

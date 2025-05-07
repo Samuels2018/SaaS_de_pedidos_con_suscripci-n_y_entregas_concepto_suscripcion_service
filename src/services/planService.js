@@ -1,6 +1,6 @@
 'use strict'
 
-const {Plans} = require('.../models')
+const {Plans} = require('../../models')
 const { where } = require('sequelize')
 
 const getPlansById = async (planId) => {
@@ -22,7 +22,21 @@ const getAllPlans = async () => {
   return plans
 }
 
+const createPlan = async (name, description, price, billingCycle, features, isActive) => {
+  const plan = await Plans.create(
+    name,
+    description,
+    price,
+    billingCycle,
+    features,
+    isActive
+  )
+
+  return plan
+}
+
 module.exports = {
   getPlansById,
-  getAllPlans
+  getAllPlans,
+  createPlan
 }

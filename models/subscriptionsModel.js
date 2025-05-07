@@ -18,10 +18,10 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(50),
       allowNull: false,
       references: {
-        model: 'Users',
+        model: 'custom_auth_useraccount',
         key: 'id'
       }
     },

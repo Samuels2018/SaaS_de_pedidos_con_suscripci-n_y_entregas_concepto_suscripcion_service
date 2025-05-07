@@ -1,29 +1,31 @@
 'use strict'
-const {Subscriptions}  = require('.../models')
+
+require('dotenv').config();
+const {Subscriptions}  = require('../../models')
 
 const suscribePlanService = async (userId, planId, status, startDate, endDate, nextBillingDate) => {
+
   const defaultData = {
-    userId: userId || 1,
+    userId: String(userId),
     planId: planId || 1,
     status: status || 'active',
     startDate: startDate || new Date(),
-    endDate: endDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-    nextBillingDate: nextBillingDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+    endDate: endDate || new Date(new Date().setMonth(new Date().getMonth() + 1)),
+    nextBillingDate: nextBillingDate || new Date(new Date().setMonth(new Date().getMonth() + 1))
   }
 
   console.log(defaultData)
 
-  const [row, created] = await Subscriptions.findOrCreate({
-    where: {
-      userId: defaultData.userId,
-      planId: defaultData.planId
-    },
-    defaults: defaultData
-  })
+  const subscription = await Subscriptions.create(
+    defaultData,
+    {
+    hooks: false,
+    logging: console.log
+  });
 
-  console.log(row, created)
+  console.log(subscription)
 
-  return {row, created}
+  return {subscription}
 }
 
 const existingSubscription = async (userId) => {
@@ -45,7 +47,7 @@ const updatePlanService = async (userId, planId, status, startDate, endDate, nex
     nextBillingDate: nextBillingDate
   }, {
     where: {
-      userId: userId
+      userId: String(userId)
     }
   })
 

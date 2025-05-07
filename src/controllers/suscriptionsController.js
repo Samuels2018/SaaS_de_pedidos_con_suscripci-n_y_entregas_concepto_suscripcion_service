@@ -1,41 +1,82 @@
 'use strict'
 const {suscribePlanService, existingSubscription, updatePlanService} = require('../services/suscriptionsService')
-const {getPlansById} = require('../services/planService')
+const {getPlansById, createPlan} = require('../services/planService')
 const {calculateNextBillingDate} = require('../helpers/calculateNextBilling')
+const { v4 } =  require('uuid')
 
 async function suscribePlanController (req, res) {
   console.log(req.body)
 
-  const {userId, planId, status, startDate, endDate, nextBillingDate} = req.body
+  const {userId, planId, status, startDate, endDate, planData} = req.body
+
+  console.log('userId', userId)
 
   if (!planId) {
     return res.status(400).json({error: 'Plan ID is required'})
   }
 
   try {
-    const plan = await getPlansById(planId)
-    if (!plan) {
-      return res.status(404).json({error: 'Plan not found'})
+    let plan;
+    
+    // Verificar si el plan existe
+    if (planId) {
+      plan = await getPlansById(planId);
     }
+    console.log('get plan by id')
+    console.log(plan.id)
+
+    if (!plan && planData) {
+      // Validar los datos mínimos requeridos para crear un plan
+      if (!planData.name || !planData.description || !planData.price || !planData.billingCycle) {
+        return res.status(400).json({ 
+          error: 'Missing required plan data (name, description, price, billingCycle)' 
+        });
+      }
+
+      // Crear el nuevo plan
+      plan = await createPlan({
+        name: planData.name,
+        description: planData.description,
+        price: planData.price,
+        billingCycle: planData.billingCycle,
+        features: planData.features || [],
+        isActive: planData.isActive !== false // default true
+      });
+      console.log('plans')
+      console.log(plan)
+      
+      if (!plan) {
+        return res.status(500).json({ error: 'Error creating new plan' });
+      }
+      
+    } else if (!plan) {
+      return res.status(404).json({ error: 'Plan not found and no data provided to create one' });
+    }
+
 
     const existentSubscription = await existingSubscription(userId)
     if (existentSubscription) {
       return res.status(400).json({error: 'User already has an active subscription'})
     }
 
-    const startDate = new Date()
-    const endDate = null
-    const nextBillingDate = calculateNextBillingDate(startDate, plan.billingCycle)
+    console.log('existentSubscription')
+    console.log(existentSubscription)
 
-    const newSuscription  = await suscribePlanService(userId, planId, status, startDate, endDate, nextBillingDate)
-    if (!newSuscription) {
+    const _startDate = startDate || new Date()
+    const _endDate = endDate || null
+    const nextBillingDate = calculateNextBillingDate(startDate, plan.billingCycle)
+    console.log('nextBillingDate')
+    console.log(nextBillingDate)
+
+    const { newSubscription }  = await suscribePlanService(userId, plan.id, status, _startDate, _endDate, nextBillingDate)
+    if (!newSubscription) {
       return res.status(500).json({error: 'Error creating subscription'})
     }
 
     res.status(201).json({
       message: 'Subscription created successfully',
       suscription: {
-        ...newSuscription.toJSON(),
+        ...newSubscription,
         plan: plan
       }
     })
@@ -120,8 +161,8 @@ async function changeSubscriptionController (req, res) {
     nextBillingDate = (nextBillingDate === existentSubscription.nextBillingDate) ? existentSubscription.nextBillingDate : nextBillingDate;
     status = (status === existentSubscription.status) ? existentSubscription.status : status;
 
-
     const updatedSubscription = await updatePlanService(userId, planId, status, startDate, endDate, nextBillingDate)
+    console.log('llegando a updatePlanService')
     if (!updatedSubscription) {
       return res.status(500).json({error: 'Error updating subscription'})
     }
@@ -129,7 +170,7 @@ async function changeSubscriptionController (req, res) {
     res.status(200).json({
       message: 'Subscription updated successfully',
       subscription: {
-        ...updatedSubscription.toJSON(),
+        updatedSubscription,
         plan: plan
       }
     })
